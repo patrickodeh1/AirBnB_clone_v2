@@ -5,7 +5,7 @@
 sudo apt-get update -y
 
 # Install nginx if not already installed
-if ! which nginx > /dev/null 2>&1; then
+if ! command -v nginx > /dev/null 2>&1; then
 	sudo apt-get install nginx -y
 fi
 
@@ -32,7 +32,7 @@ sudo ln -s /data/web_static/releases/test/ /data/web_static/current
 sudo chown -R ubuntu:ubuntu /data/
 
 #update Nginx configuration
-sudo sed -i '/server_name _;/a \\\n\tlocation /hbnb_static {\n\t\talias /data/web_static/current;\n\t}\n' /etc/nginx/sites-available/default
+sudo sed -i '/location \/ {$/a \\\n\tlocation /hbnb_static/ {\n\t\talias /data/web_static/current/;\n\t}\n' /etc/nginx/sites-available/default
 
 #restart Nginx
 sudo service nginx restart
