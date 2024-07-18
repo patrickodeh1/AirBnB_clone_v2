@@ -1,6 +1,8 @@
 #!/usr/bin/python3
 
-"""Define the hosts for deployment"""
+"""
+Define the hosts for deployment
+"""
 
 from fabric import task, Connection
 import os
