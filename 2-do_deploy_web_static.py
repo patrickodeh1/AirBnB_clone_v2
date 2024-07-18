@@ -12,11 +12,7 @@ env_hosts = ['100.26.227.236', '54.197.106.162']
 
 @task
 def do_deploy(c, archive_path):
-    """
-    Distributes an archive to the web servers.
-    Returns True if all operations have been done correctly,
-    otherwise returns False.
-    """
+    """Distributes an archive to the web servers."""
     if not os.path.exists(archive_path):
         return False
 
