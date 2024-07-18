@@ -8,9 +8,34 @@ env_hosts = ['100.26.227.236', '54.197.106.162']
 @task
 def do_deploy(c, archive_path):
     """
-    Distributes an archive to the web servers.
-    Returns True if all operations have been done correctly,
-    otherwise returns False.
+    Distributes an archive to the web servers and deploys it.
+
+    This function uploads a given archive to each specified web server, extracts
+    the contents to the correct location, and updates the symbolic link to point
+    to the new release. It handles cleaning up temporary files and directories
+    as necessary.
+
+    Args:
+        c (fabric.Connection): Fabric Connection object for executing commands.
+        archive_path (str): The path to the archive file to be deployed.
+
+    Returns:
+        bool: True if all operations were successful, False otherwise.
+    
+    Steps:
+        - Check if the archive file exists locally.
+        - Upload the archive to the /tmp/ directory on each web server.
+        - Create a new directory for the release.
+        - Extract the archive into the new release directory.
+        - Remove the uploaded archive from /tmp/ on the web server.
+        - Move the extracted contents to the release directory.
+        - Remove the now-empty directory within the release.
+        - Delete the existing symbolic link to the current release.
+        - Create a new symbolic link to the newly extracted release.
+    
+    Raises:
+        Exception: If any error occurs during the deployment, the exception
+                   is caught, and False is returned.
     """
     if not os.path.exists(archive_path):
         return False
