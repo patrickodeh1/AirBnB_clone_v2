@@ -2,7 +2,6 @@
 from fabric import task, Connection
 import os
 
-"""Define the hosts for deployment"""
 env_hosts = ['100.26.227.236', '54.197.106.162']
 
 
