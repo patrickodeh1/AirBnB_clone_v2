@@ -1,7 +1,8 @@
 #!/usr/bin/python3
 
 """
-Define the hosts for deployment
+Fabric script based on the file 1-pack_web_static.py that distributes an
+archive to the web servers
 """
 
 from fabric import task, Connection
