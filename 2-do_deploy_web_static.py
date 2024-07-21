@@ -4,44 +4,28 @@ Fabric script based on the file 1-pack_web_static.py that distributes an
 archive to the web servers
 """
 
-from fabric import task, Connection
-import os
+from fabric.api put, run, env
+from os.path import exists
 
-env_hosts = ['100.26.227.236', '54.197.106.162']
+env.hosts = ['100.26.227.236', '54.197.106.162']
 
 
-@task
-def do_deploy(c, archive_path):
+def do_deploy(archive_path):
     """Distributes an archive to the web servers."""
-    if not os.path.exists(archive_path):
+    if exists(archive_path) is False:
         return False
-
     try:
-        archive_file = os.path.basename(archive_path)
-        archive_name = os.path.splitext(archive_file)[0]
-
-        for host in env_hosts:
-            c = Connection(host)
-            c.put(archive_path, f"/tmp/{archive_file}")
-
-            release_dir = f"/data/web_static/releases/{archive_name}/"
-            c.run(f"mkdir -p {release_dir}")
-
-            c.run(f"tar -xzf /tmp/{archive_file} -C {release_dir}")
-
-            c.run(f"rm /tmp/{archive_file}")
-
-            c.run(f"mv {release_dir}web_static/* {release_dir}")
-
-            c.run(f"rm -rf {release_dir}web_static")
-
-            c.run("rm -rf /data/web_static/current")
-
-            c.run(f"ln -s {release_dir} /data/web_static/current")
-
-            print(f"New version deployed on {host}!")
-
+        file_n = archive_path.split("/")[-1]
+        no_ext = file_n.split(".")[0]
+        path = "/data/web_static/releases/"
+        put(archive_path, '/tmp/')
+        run('mkdir -p {}{}/'.format(path, no_ext))
+        run('tar -xzf /tmp/{} -C {}{}/'.format(file_n, path, no_ext))
+        run('rm /tmp/{}'.format(file_n))
+        run('mv {0}{1}/web_static/* {0}{1}/'.format(path, no_ext))
+        run('rm -rf {}{}/web_static'.format(path, no_ext))
+        run('rm -rf /data/web_static/current')
+        run('ln -s {}{}/ /data/web_static/current'.format(path, no_ext))
         return True
-    except Exception as e:
-        print(f"An error occurred: {e}")
+    except Exception:
         return False
