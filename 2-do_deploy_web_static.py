@@ -9,10 +9,10 @@ from os.path import exists
 # Define your web servers' IP addresses
 env.hosts = ['100.26.227.236', '54.197.106.162']
 
-
 def do_deploy(archive_path):
     """Distributes an archive to the web servers."""
     if not exists(archive_path):
+        print("Archive path does not exist.")
         return False
 
     try:
@@ -20,31 +20,46 @@ def do_deploy(archive_path):
         file_name = archive_path.split("/")[-1]
         no_ext = file_name.split(".")[0]
         release_path = "/data/web_static/releases/"
+        release_full_path = f"{release_path}{no_ext}/"
 
         # Upload archive to /tmp/ directory on web server
         put(archive_path, '/tmp/')
 
         # Create target directory on the server
-        run('mkdir -p {}{}/'.format(release_path, no_ext))
+        run(f'mkdir -p {release_full_path}')
 
         # Uncompress the archive to the target directory
-        run('tar -xzf /tmp/{} -C {}{}/'.format(file_name, release_path, no_ext))
+        run(f'tar -xzf /tmp/{file_name} -C {release_full_path}')
 
         # Remove the archive from the server
-        run('rm /tmp/{}'.format(file_name))
+        run(f'rm /tmp/{file_name}')
 
         # Move files out of the 'web_static' subdirectory
-        run('mv {0}{1}/web_static/* {0}{1}/'.format(release_path, no_ext))
+        run(f'mv {release_full_path}web_static/* {release_full_path}')
 
         # Remove the now-empty 'web_static' subdirectory
-        run('rm -rf {}{}/web_static'.format(release_path, no_ext))
+        run(f'rm -rf {release_full_path}web_static')
 
         # Delete the current symbolic link
         run('rm -rf /data/web_static/current')
 
         # Create a new symbolic link to the new release
-        run('ln -s {}{}/ /data/web_static/current'.format(release_path, no_ext))
+        run(f'ln -s {release_full_path} /data/web_static/current')
 
+        # Check if the required files are present
+        result_0 = run('test -f /data/web_static/current/0-index.html', warn_only=True)
+        result_my = run('test -f /data/web_static/current/my_index.html', warn_only=True)
+        
+        if result_0.failed:
+            print("Missing /data/web_static/current/0-index.html")
+            return False
+
+        if result_my.failed:
+            print("Missing /data/web_static/current/my_index.html")
+            return False
+
+        print("New version deployed successfully!")
         return True
-    except:
+    except Exception as e:
+        print(f"Deployment failed: {e}")
         return False
