@@ -12,13 +12,17 @@ env.hosts = ['100.26.227.236', '54.197.106.162']
 
 def do_pack():
     """Generates a .tgz archive from the contents of the web_static folder."""
-    local("mkdir -p versions")
-    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-    archive_path = "versions/web_static_{}.tgz".format(timestamp)
-    result = local("tar -cvzf {} web_static".format(archive_path))
-    if result.failed:
+    try:
+        local("mkdir -p versions")
+        timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+        archive_path = "versions/web_static_{}.tgz".format(timestamp)
+        result = local("tar -cvzf {} web_static".format(archive_path))
+        if result.failed:
+            return None
+        return archive_path
+    except Exception as e:
+        print(f"Error creating archive: {e}")
         return None
-    return archive_path
 
 
 def do_deploy(archive_path):
@@ -55,8 +59,13 @@ def do_deploy(archive_path):
         # Create a new symbolic link pointing to the new version
         run('ln -s {}{}/ /data/web_static/current'.format(path, no_ext))
         
+        # Ensure that the required files are present
+        run('test -f /data/web_static/current/0-index.html')
+        run('test -f /data/web_static/current/my_index.html')
+
         return True
-    except:
+    except Exception as e:
+        print(f"Deployment failed: {e}")
         return False
 
 
