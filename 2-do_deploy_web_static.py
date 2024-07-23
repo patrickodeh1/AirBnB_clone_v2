@@ -1,7 +1,6 @@
 #!/usr/bin/python3
 
 import os
-from os.path import exists
 from fabric.api import *
 
 
@@ -18,16 +17,15 @@ def do_deploy(archive_path):
         file_name = os.path.basename(archive_path)
         no_ext = file_name.split(".")[0]
         release_path = "/data/web_static/releases/"
-        release_full_path = f"{release_path}{no_ext}/"
 
         put(archive_path, '/tmp/')
-        run(f'mkdir -p {release_full_path}')
-        run(f'tar -xzf /tmp/{file_name} -C {release_full_path}')
-        run(f'rm /tmp/{file_name}')
-        run(f'mv {release_full_path}/web_static/* {release_full_path}')
-        run(f'rm -rf {release_full_path}web_static')
+        run('mkdir -p {}{}'.format(release_path, no_ext))
+        run('tar -xzf /tmp/{} -C {}{}'.format(file_name, release_path, no_ext))
+        run('rm /tmp/{}'.format(file_name))
+        run('mv {0}{1}/web_static/* {0}{1}'.format(release_path, no_ext))
+        run('rm -rf {}{}/web_static'.format(release_path, no_ext))
         run('rm -rf /data/web_static/current')
-        run(f'ln -s {release_full_path} /data/web_static/current')
+        run('ln -s {}{}/ /data/web_static/current'.format(release_path, no_ext))
         return True
     except:
         return False
